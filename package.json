@@ -2,6 +2,10 @@
   "name": "flavour-tales",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "prisma generate && next build",
