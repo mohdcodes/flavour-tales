@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MenuCategory {
+  id       String     @id @default(cuid())
+  slug     String     @unique
+  name     String
+  subtitle String?
+  sort     Int
+  items    MenuItem[]
+}
+
+model MenuItem {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  name        String
+  description String?
+  basePrice   Int
+  /// MenuVariant[] as defined in src/data/menu.ts; null when the item has no variants.
+  variants    Json?
+  available   Boolean      @default(true)
+  sort        Int
+  categoryId  String
+  category    MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
+
+  @@index([categoryId])
+}
+
+model Customer {
+  id            String         @id @default(cuid())
+  phone         String         @unique
+  name          String?
+  pointsBalance Int            @default(0)
+  createdAt     DateTime       @default(now())
+  orders        Order[]
+  ledger        PointsLedger[]
+}
+
+enum OrderMode {
+  DINE_IN
+  TAKEAWAY
+}
+
+model Order {
+  id             String         @id @default(cuid())
+  code           String         @unique
+  customerId     String
+  customer       Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tableLabel     String?
+  mode           OrderMode      @default(TAKEAWAY)
+  subtotal       Int
+  pointsRedeemed Int
+  amountPaid     Int
+  pointsEarned   Int
+  createdAt      DateTime       @default(now())
+  items          OrderItem[]
+  ledger         PointsLedger[]
+
+  @@index([customerId, createdAt])
+}
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId   String
+  menuItem     MenuItem @relation(fields: [menuItemId], references: [id])
+  /// Name, variant and price are snapshotted so a later menu edit cannot rewrite history.
+  name         String
+  variantKey   String?
+  variantLabel String?
+  unitPrice    Int
+  quantity     Int
+
+  @@index([orderId])
+}
+
+enum LedgerKind {
+  EARN
+  REDEEM
+  ADJUST
+}
+
+model PointsLedger {
+  id           String     @id @default(cuid())
+  customerId   String
+  customer     Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderId      String?
+  order        Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  delta        Int
+  kind         LedgerKind
+  balanceAfter Int
+  note         String?
+  createdAt    DateTime   @default(now())
+
+  @@index([customerId, createdAt])
+}

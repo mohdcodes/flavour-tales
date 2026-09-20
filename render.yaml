@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: flavour-tales
+    runtime: node
+    plan: free
+    # Closest Render region to Indore.
+    region: singapore
+    buildCommand: >-
+      pnpm install --frozen-lockfile &&
+      pnpm prisma generate &&
+      pnpm prisma migrate deploy &&
+      pnpm prisma db seed &&
+      pnpm build
+    startCommand: pnpm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: NODE_VERSION
+        value: '22'
+      # ENABLE_DEMO_TOOLS is deliberately absent. Add it by hand in the Render
+      # dashboard only when a deploy is meant to be a demo.
