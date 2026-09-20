@@ -19,5 +19,16 @@ services:
         sync: false
       - key: NODE_VERSION
         value: '22'
-      # ENABLE_DEMO_TOOLS is deliberately absent. Add it by hand in the Render
-      # dashboard only when a deploy is meant to be a demo.
+
+      # === DEMO MODE — ON ===
+      #
+      # Exposes the points simulator at /wallet?demo=1, so a walkthrough can
+      # reach the 100-point redemption threshold. Without it nobody sees
+      # redemption: at 2% a customer needs 5,000 rupees of spend to get there.
+      #
+      # ANYONE who opens /wallet?demo=1 can grant themselves points. That is
+      # fine while this is a pitch, and NOT fine once real money is involved.
+      # Before this serves actual customers, delete these two lines and
+      # redeploy - the endpoint then returns 404.
+      - key: ENABLE_DEMO_TOOLS
+        value: 'true'
